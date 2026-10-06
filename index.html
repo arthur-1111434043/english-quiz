@@ -258,22 +258,26 @@
 
     // --- 題庫解析與載入 ---
     async function fetchDataFromUrl() {
-        const url = document.getElementById('dbUrl').value.trim();
-        if (!url) return alert("請輸入網址！");
+        // 如果網址框沒填東西，預設直接去抓旁邊的 vocab.txt
+        const url = document.getElementById('dbUrl').value.trim() || 'vocab.txt';
+        
         const btn = document.getElementById('fetchBtn');
-        btn.innerText = "載入中..."; btn.disabled = true;
+        btn.innerText = "載入中...";
+        btn.disabled = true;
 
         try {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('網路錯誤');
-            const data = await response.json();
-            if (!data.contents) throw new Error('網址內無文字內容');
-            parseTextToDatabase(data.contents);
+            // 直接讀取，不再繞路經過 allorigins 代理
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('找不到檔案，請確認網址');
+            
+            const textData = await response.text();
+            parseTextToDatabase(textData);
+
         } catch (err) {
-            alert("載入失敗！請確認網址為公開的純文字檔。\n" + err.message);
+            alert("載入失敗！\n錯誤：" + err.message);
         } finally {
-            btn.innerText = "從網址載入並儲存"; btn.disabled = false;
+            btn.innerText = "從網址載入並儲存";
+            btn.disabled = false;
         }
     }
 
